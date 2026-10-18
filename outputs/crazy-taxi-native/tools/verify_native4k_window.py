@@ -1,0 +1,8 @@
+from pathlib import Path
+import re,json,hashlib
+r=Path('outputs/crazy-taxi-native');reports=r/'reports';l=(reports/'native4k-live-window.log').read_text();assert not (reports/'native4k-live-window.err').read_text();assert 'PASS NATIVE4K LIVE WINDOW:' in l and 'rendered360 window blits360' in l
+stages=[list(map(int,x)) for x in re.findall(r'stage(\d+) presentation(\d+) client(\d+)x(\d+) fullscreen(\d+)',l)];assert len(stages)==4 and [x[0] for x in stages]==[0,1,2,3] and [x[1] for x in stages]==[60,120,180,240] and [x[4] for x in stages]==[0,1,0,0] and stages[0][2:4]==stages[2][2:4]==[320,400]
+for stem,marker in [('native4k-focus-suspend','PASS FOCUS SUSPENSION:'),('native4k-respawn-clock','PASS RESPAWN CLOCK:')]:
+ log=(reports/f'{stem}.log').read_text();assert marker in log and 'rendered360 window blits360' in log and not (reports/f'{stem}.err').read_text()
+report={'status':'PASS_NATIVE4K_LIVE_WINDOW_AND_CLOCK_REGRESSIONS','transitions':stages,'frames_per_test':360,'tests':['live resize/fullscreen/restore','controlled focus suspension','respawn stale clock reset'],'binary_sha256':hashlib.sha256((r/'bin/scene-viewer-native4k-window.exe').read_bytes()).hexdigest(),'scope':'Live window API changes preserve source driving and host clock bytewise;360 subsequent/native draws and blits per test, perdraw invariants. Actualfullscreen client640x480, internal target3840x2160. Physicalfocus transitions, 4Kmonitor scanout, controller/deviceaudio and sustained60 not proven.'}
+(reports/'native4k-window-verification.json').write_text(json.dumps(report,indent=2)+'\n');print('PASS live window transitions and two native4K clock regressions')

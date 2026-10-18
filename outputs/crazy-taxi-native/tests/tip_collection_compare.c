@@ -1,0 +1,3 @@
+#include "../src/fare.h"
+#include <stdio.h>
+int main(void){long whole,fraction;unsigned count;while(scanf("%ld %ld %u",&whole,&fraction,&count)==3){TaxiFareState f={.pending_whole_16a0=(int32_t)whole,.pending_fraction_16a4=(int32_t)fraction};TaxiCashGlyphs g;taxi_cash_glyphs_init(&g);uint8_t tips[10][56],active=(uint8_t)count;unsigned b;for(unsigned i=0;i<560;i++){if(scanf("%u",&b)!=1)return 1;tips[i/56][i%56]=(uint8_t)b;}taxi_fare_collect_tips_display(&f,tips,&active,&g);printf("%ld %ld %u",(long)f.pending_whole_16a0,(long)f.pending_fraction_16a4,active);for(unsigned i=0;i<9;i++)printf(" %u",g.pending_target[i]);for(unsigned i=0;i<9;i++)printf(" %u",g.pending[i]);for(unsigned i=0;i<560;i++)printf(" %u",tips[i/56][i%56]);puts("");}return 0;}

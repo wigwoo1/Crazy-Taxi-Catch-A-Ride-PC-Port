@@ -1,0 +1,9 @@
+from pathlib import Path
+import subprocess,json,struct
+root=Path('outputs/crazy-taxi-native');ns={};exec((root/'tools/original_marker_raster_probe.py').read_text(),ns);rom=ns['r'];texture=0x0820ff08;cases=[]
+for rect in ((25,20,215,116),(-25,20,165,116),(100,20,290,116),(25,107,215,203)):
+ q=ns['MarkerRasterProbe'](texture,rect,True);q.write(ns['DESC'],0x05062040,4);original=q.run();fixture=struct.pack('<7i',*rect,64,32,6)+rom[texture-0x08000000:texture-0x08000000+2048];cp=subprocess.run([str(root/'bin/retained-marker-owner-compare.exe'),'source'],input=fixture,capture_output=True);assert cp.returncode==0 and cp.stdout==original,(rect,cp.returncode,cp.stderr);writes=int(cp.stderr.decode().split('writes=')[1]);cases.append(dict(rectangle=rect,original_instructions=q.steps,compared_bytes=38400,native_halfword_writes=writes))
+for rect in ((25,20,215,116),(26,21,216,117),(0,0,64,32)):
+ q=ns['MarkerRasterProbe'](texture,rect,False);q.write(ns['DESC'],0x05062040,4);original=q.run();fixture=struct.pack('<7i',*rect,64,32,6)+rom[texture-0x08000000:texture-0x08000000+2048];cp=subprocess.run([str(root/'bin/retained-marker-owner-compare.exe'),'source-unclipped'],input=fixture,capture_output=True);assert cp.returncode==0 and cp.stdout==original,(rect,cp.returncode,cp.stderr);cases.append(dict(rectangle=rect,callback='original4A94',original_instructions=q.steps,compared_bytes=38400,native_halfword_writes=int(cp.stderr.decode().split('writes=')[1])))
+report=dict(status='NATIVE_SOURCE_FRAME_BANNER_DISPATCH_PASS',cases=cases,scope='Production source_frame_native queue/material callback identity->original49F8/4A94 native billboard. Explicit recovered64x32 ROMtexture/rectangle/fill173 fixtures, originaldivider/clipping instructions. Not independently native banner generation, live gameplay or 4K hardware display proof.')
+(root/'reports/native-source-frame-banner-dispatch-comparison.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report))

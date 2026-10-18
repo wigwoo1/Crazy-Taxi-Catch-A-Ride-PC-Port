@@ -1,0 +1,4 @@
+#include "../src/music_tracker.h"
+#include <stdio.h>
+#include <string.h>
+int main(void){unsigned command,param,volume;while(scanf("%u %u %u",&command,&param,&volume)==3){uint8_t events[21]={64,0,0,0,(uint8_t)command,(uint8_t)param,0,0,0,10,(uint8_t)(param^15),0,0,0,6,(uint8_t)((param<<4)|(param>>4)),0,0,0,255,255};TaxiMusicAsset a={.bytes=events,.size=21};TaxiMusicTracker t={0};memset(t.state.state,165,12);t.state.state[2]=4;t.state.state[6]=0;t.state.pattern_offset=0;for(unsigned k=0;k<16;k++)memset(t.voice[k].bytes,165,32);unsigned volumes[4]={volume,0,64,65535};for(unsigned k=0;k<4;k++){t.voice[k].bytes[22]=(uint8_t)volumes[k];t.voice[k].bytes[23]=(uint8_t)(volumes[k]>>8);}if(!taxi_music_tracker_nonrow(&t,&a))return 1;for(unsigned j=0;j<12;j++)printf("%02x",t.state.state[j]);putchar(' ');for(unsigned k=0;k<16;k++)for(unsigned j=0;j<32;j++)printf("%02x",t.voice[k].bytes[j]);putchar('\n');}return 0;}

@@ -1,0 +1,5 @@
+import pathlib,re,json,hashlib
+r=pathlib.Path('outputs/crazy-taxi-native');log=(r/'reports/presentation-fallback.log').read_text();assert 'PASS paced native input-only boarding and original passenger voice playback;' in log
+count=int(re.search(r'TIMESTAMPED FALLBACK PASSENGER DRAWS: (\d+)',log)[1]);assert count>0
+assert 'TIMESTAMPED PASSENGER VIEWS: 0.' in log and 'TIMESTAMPED TRAFFIC VIEWS: 0.' in log
+report={'status':'PASS_TIMESTAMPED_FALLBACK_PASSENGER_COVERAGE','submitted_passenger_quads':count,'binary_sha256':hashlib.sha256((r/'bin/scene-viewer-presentation-fallback.exe').read_bytes()).hexdigest(),'scope':'Historical alternate renderer exercised during native pickup withoutsharedtrafficqueue. Native perdrawcar/context/traffic/passengerscene assertions preserve state. Submitted quads notGPUpixelvisibility/originalart/framing proof; manualoverrideguard reviewedbutnotphysicalmouseverified.'};(r/'reports/timestamped-fallback-verification.json').write_text(json.dumps(report,indent=2)+'\n');print(report)

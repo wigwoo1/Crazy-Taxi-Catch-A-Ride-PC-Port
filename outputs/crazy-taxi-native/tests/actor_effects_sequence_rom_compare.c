@@ -1,0 +1,4 @@
+#include "../src/actor_effects.h"
+#include <stdio.h>
+static int height(void*c,TaxiPoint p,int32_t*y){(void)c;(void)p;*y=1234;return 1;}
+int main(void){TaxiActorEffects s;taxi_actor_effects_cold_init(&s);TaxiBodyPoints b={0};for(unsigned j=0;j<6;j++){b.positions[j]=(TaxiPoint){20,100,300};b.vectors[j]=(TaxiPoint){j==2?-256:j==3?256:0,256,j==4?-2048:-3072};}for(unsigned tick=0;tick<120;tick++){unsigned stage=tick/20;TaxiActorEffectInput i={.material_flags=stage==2?6:0,.action2=1,.voice_25d4=stage==0,.speed=100000,.scale=stage==1?5324:4096,.alternate=stage>=4,.phase_e6a=stage==3?1:0,.state_2630=stage==3?45:0,.delta=1,.clock=60};if(taxi_actor_effects_step(&s,&b,i,height,0)<0)return 2;printf("%u",s.ring);for(unsigned j=0;j<4;j++)printf(" %d",s.timers[j]);for(unsigned g=0;g<2;g++)for(unsigned j=0;j<6;j++)printf(" %d",s.pool.slots[g][j]);for(unsigned j=0;j<648;j++)printf(" %u",((unsigned char*)s.pool.records)[j]);puts("");}return 0;}

@@ -1,0 +1,6 @@
+#include "title_assets.h"
+#include "ordinary_graphics_owned.h"
+#include <stdio.h>
+#include <stdlib.h>
+int main(void){uint8_t *rom=malloc(8388608);FILE *f=fopen("Crazy Taxi - Catch a Ride (USA).gba","rb");if(!rom||!f||fread(rom,1,8388608,f)!=8388608)return 1;fclose(f);TaxiTitleAssets a={0};TaxiPaletteRegistration s={0};TaxiPaletteBanks b={0};s.flags=4;TaxiFontSetup fonts={0};TaxiStartupObjQueue queue={0};TaxiStartupObjTransport transport={0};uint16_t base[128][4]={{0}};TaxiObjMatrixSlot matrix[32]={0};TaxiOrdinaryGraphicsOwners owners={&a,&s,&b,&fonts,&queue,&transport,base,matrix,rom,8388608,0x06014000};if(taxi_ordinary_graphics_owned(&owners,1))return 2;for(unsigned g=0;g<11;g++)printf("%u %d\n",a.bases[g],a.palette_bases[g]);f=fopen("outputs/crazy-taxi-native/reports/ordinary-native-assets.bin","wb");if(!f)return 3;for(unsigned g=0;g<11;g++){if(fwrite(&a.bases[g],4,1,f)!=1||fwrite(&a.palette_bases[g],4,1,f)!=1)return 6;}
+ if(fwrite(a.objects,1,16416,f)!=16416||fwrite(b.objects,1,512,f)!=512)return 4;if(fwrite(&fonts.cursor,1,4,f)!=4||fwrite(fonts.descriptors,1,144,f)!=144)return 5;if(fwrite(&s.count,2,1,f)!=1||fwrite(&s.obj_bytes,2,1,f)!=1)return 7;fclose(f);printf("count%u bytes%u\n",s.count,s.obj_bytes);free(rom);return 0;}

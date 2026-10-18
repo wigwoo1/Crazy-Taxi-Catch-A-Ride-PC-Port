@@ -1,0 +1,4 @@
+#include "../src/input_snapshot.h"
+#include <stdio.h>
+static void half(uint16_t x){printf(" %u %u",x&255,x>>8);}
+int main(void){unsigned raw,suppress,over,mask,delta,value;uint8_t p[66];while(scanf("%u%u%u%u%u",&raw,&suppress,&over,&mask,&delta)==5){for(unsigned i=0;i<66;i++){if(scanf("%u",&value)!=1||value>255)return 2;p[i]=(uint8_t)value;}TaxiInput s;if(taxi_input_snapshot_read(&s,p,66))return 3;taxi_input_update(&s,(TaxiInputSample){(uint16_t)raw,(uint8_t)suppress,(uint8_t)over,(uint16_t)mask,delta});printf("%u %u",s.auxiliary_mask&255,s.auxiliary_mask>>8);half(s.raw_keys);half(s.pressed_mask);for(unsigned i=0;i<10;i++)printf(" %u",s.held[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.previous[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.repeat[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.pressed[i]);for(unsigned i=0;i<10;i++)half(s.countdown[i]);puts("");}return 0;}

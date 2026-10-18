@@ -1,0 +1,10 @@
+import pathlib,json,re,csv,statistics,hashlib,sys
+sys.path.insert(0,'work/python-packages')
+from PIL import Image
+r=pathlib.Path('outputs/crazy-taxi-native');log=(r/'reports/live4k-driving.log').read_text();assert not (r/'reports/live4k-driving.err').read_text();assert 'LIVE4K GPU COMPLETED: 360 frames at3840x2160' in log
+meta=json.loads((r/'reports/live4k-driving.bmp.json').read_text());assert [meta['width'],meta['height']]==[3840,2160] and meta['gameplay_updates']==240
+intervals=[float(x['swap_return_ms']) for x in csv.DictReader((r/'reports/live4k-driving-intervals.csv').open())];assert len(intervals)==359 and all(x>0 for x in intervals)
+skipped=int(re.search(r'(\d+) skipped60Hz deadlines',log)[1]);assert skipped>0 and statistics.mean(intervals)>1000/60
+im=Image.open(r/'reports/live4k-driving.bmp').convert('RGB');assert im.size==(3840,2160) and im.getextrema()!=((0,0),(0,0),(0,0));png=r/'reports/live4k-driving.png';im.save(png);assert Image.open(png).convert('RGB').tobytes()==im.tobytes()
+report={'status':'PASS_NATIVE_LIVE_4K_RENDER_PERFORMANCE_TARGET_NOT_MET','gpu_completed_frames':360,'dimensions':[3840,2160],'frame_interval_samples':len(intervals),'mean_interval_ms':statistics.mean(intervals),'p95_interval_ms':sorted(intervals)[len(intervals)*95//100],'maximum_interval_ms':max(intervals),'skipped_60hz_deadlines':skipped,'binary_sha256':hashlib.sha256((r/'bin/scene-viewer-live4k-check.exe').read_bytes()).hexdigest(),'scope':'Hidden native4K WGL framebuffer while real native gameplay advances; glFinish/glGetError checked everydraw, dimensions asserted everyframe, actual framebuffer capture verified. Draw state/RNG/cash/panel/effect caches preserved by assertions. CPU swap-return intervals include initial work and one screenshot/readback; not monitor scanout or isolated steady-state profiling. 60fps performance target not achieved; need no-capture profiling/optimization. Prior unexplained expiry failure remains unresolved; two retained-trace diagnostic repeats passed full checks.'}
+(r/'reports/live4k-driving-verification.json').write_text(json.dumps(report,indent=2)+'\n');print(report['status'],report['mean_interval_ms'],skipped)

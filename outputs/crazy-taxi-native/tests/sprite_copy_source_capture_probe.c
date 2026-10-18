@@ -1,0 +1,6 @@
+#include "sprite_copy_flush_owned.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int main(int argc,char **argv){assert(argc==3);FILE *f=fopen(argv[1],"rb");uint8_t *rom=malloc(8388608);assert(f&&rom&&fread(rom,1,8388608,f)==8388608&&fgetc(f)==EOF);assert(!fclose(f));FILE *out=fopen(argv[2],"wb");assert(out);unsigned count;while(scanf("%u",&count)==1){TaxiSpriteCopies q={0};q.count=(uint16_t)count;assert(count<=64);uint8_t scratch[64],objects[32768];for(unsigned i=0;i<64;i++){unsigned v;assert(scanf("%u",&v)==1&&v<256);scratch[i]=(uint8_t)v;}for(unsigned i=0;i<count;i++)assert(scanf("%u %u %u",&q.records[i].source,&q.records[i].destination,&q.records[i].bytes)==3);TaxiSpriteImmediateCopy dma={0x11111111,0x22222222,0x33333333};memset(objects,165,sizeof objects);TaxiSpriteCopyFlushOwner owner={rom,8388608,objects,sizeof objects,0x06010000,&q,&dma};TaxiSpriteCopySource source={0x03005400,scratch,sizeof scratch};assert(!taxi_sprite_copy_flush_sources_owned(&owner,&source,1));uint32_t header[4]={q.count,dma.source,dma.destination,dma.control};assert(fwrite(header,1,16,out)==16&&fwrite(q.records,1,768,out)==768&&fwrite(objects,1,sizeof objects,out)==sizeof objects);}assert(!fclose(out));free(rom);return 0;}

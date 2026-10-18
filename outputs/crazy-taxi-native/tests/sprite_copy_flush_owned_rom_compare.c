@@ -1,0 +1,5 @@
+#include "sprite_copy_flush_owned.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int main(int argc,char **argv){if(argc!=3)return 1;FILE *f=fopen(argv[1],"rb");uint8_t *rom=malloc(8388608);if(!f||!rom||fread(rom,1,8388608,f)!=8388608||fgetc(f)!=EOF)return 2;fclose(f);FILE *out=fopen(argv[2],"wb");if(!out)return 3;unsigned count,bytes;uint8_t objects[32768];while(scanf("%u %u",&count,&bytes)==2){TaxiSpriteCopies q={0};q.count=(uint16_t)count;TaxiSpriteImmediateCopy dma={0x11111111,0x22222222,0x33333333};for(unsigned i=0;i<64;i++)q.records[i]=(TaxiSpriteCopy){0x080fd5fc+i*1024,0x06014000+i*32,bytes+i*4};memset(objects,165,sizeof objects);TaxiSpriteCopyFlushOwner owner={rom,8388608,objects,sizeof objects,0x06014000,&q,&dma};if(taxi_sprite_copy_flush_owned(&owner))return 4;uint32_t header[4]={q.count,dma.source,dma.destination,dma.control};if(fwrite(header,1,16,out)!=16||fwrite(q.records,1,768,out)!=768||fwrite(objects,1,sizeof objects,out)!=sizeof objects)return 5;}fclose(out);free(rom);return 0;}

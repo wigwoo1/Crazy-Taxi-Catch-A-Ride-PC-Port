@@ -1,0 +1,4 @@
+#include "restart_render_context.h"
+#include <stdio.h>
+#include <string.h>
+int main(void){unsigned mode,present,w,h,red,green,blue,value;while(scanf("%u%u%u%u%u%u%u",&mode,&present,&w,&h,&red,&green,&blue)==7){uint8_t a[38400],b[38400];uint16_t pal[256];for(unsigned i=0;i<256;i++){if(scanf("%u",&value)!=1)return 2;pal[i]=(uint16_t)value;}memset(a,165,sizeof a);memset(b,165,sizeof b);TaxiRestartRenderContext s={.frame=a,.frame_size=sizeof a,.alternate_frame=b,.alternate_size=sizeof b,.width=(uint16_t)w,.height=(uint16_t)h,.bitmap_mode=(uint8_t)mode,.engine_present=(uint8_t)present,.palette=pal,.fill_06900=123};uint32_t args[7]={red,green,blue};if(taxi_restart_render_call(&s,0x0802c558,args)!=1)return 3;printf("%u ",s.fill_06900);for(unsigned i=0;i<sizeof a;i++)printf("%02x",a[i]);putchar(' ');for(unsigned i=0;i<sizeof b;i++)printf("%02x",b[i]);putchar('\n');}return 0;}

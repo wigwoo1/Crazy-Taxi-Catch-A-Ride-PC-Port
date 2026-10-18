@@ -1,0 +1,7 @@
+from pathlib import Path
+import json,subprocess,hashlib
+root=Path('outputs/crazy-taxi-native');audit=json.loads((root/'reports/bound-second-frame-oam-publication-audit.json').read_text());assert audit['status']=='SOURCE_OAM_PUBLICATION_RETURN_ABI_PASS'
+cp=subprocess.run([str(root/'bin/bound-first-frame-oam-publication-native-compare.exe'),str(root/'reports/bound-second-frame-oam-before.bin')],capture_output=True);expected=(root/'reports/bound-second-frame-oam-after.bin').read_bytes();diff=[i for i,(a,b) in enumerate(zip(cp.stdout,expected)) if a!=b];passed=cp.returncode==0 and len(cp.stdout)==len(expected)==6922 and not diff
+report=dict(status='NATIVE_ORIGINAL_OAM_PUBLICATION_PASS' if passed else 'NATIVE_OAM_PUBLICATION_DEPENDENCY',native_exit=cp.returncode,compared_bytes=6922,different_bytes=len(diff),first_differences=diff[:32],oam_sha256=hashlib.sha256(cp.stdout[5898:]).hexdigest(),scope='Existing nativepublication from actual shared secondframe queue/matrix/reset-template owners versus original27CD0/280C4/copied5F4/merge/reset.6922state/template/OAM bytes; originalcopyidentity retained from explicit firstframe diagnosticinstallation, no secondframe reinstallation, not uninterruptedboot, spritecopyflush/palettecomposition/liveownership/cadence unverified.')
+(root/'reports/bound-second-frame-native-oam-publication-comparison.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report));assert passed
+(root/'reports/bound-second-frame-native-oam-publication.bin').write_bytes(cp.stdout)

@@ -1,0 +1,44 @@
+"""Actual extracted city spawn/native ground feeds whole original startup."""
+exec(open('outputs/crazy-taxi-native/tools/compare_vehicle_start_packed_rom.py').read().split('\ncases=')[0])
+class SceneProbe(StartupProbe):
+ def external(self,t):
+  if t==0x0802aba0:
+   x,z,height,heading,red,green,blue,found=self.point
+   assert self.read(self.reg[0])==x&MASK and self.read(self.reg[0]+4)==0x80000000 and self.read(self.reg[0]+8)==z&MASK
+   if found:
+    self.write(self.reg[1]+4,height);self.write(self.reg[1]+21,red,1);self.write(self.reg[1]+22,green,1);self.write(self.reg[1]+23,blue,1)
+   self.reg[0]=found
+  else:super().external(t)
+steps=0;total=0;points=[]
+for city in range(2):
+ cases=[(city,seed,settings,demo) for seed in [0,165,255] for settings in [0,128] for demo in [0,1]]
+ rows=subprocess.run([str(root/'bin/vehicle-start-scene-rom-compare.exe'),str(root/'assets/driving.ctr'),str(root/f'assets/city{city+1}.ctw')],input=''.join(' '.join(map(str,c))+'\n' for c in cases),text=True,capture_output=True,check=True).stdout.splitlines();assert len(rows)==len(cases)
+ for case,row in zip(cases,rows):
+  city,seed,settings,demo=case;parts=row.split();point=list(map(int,parts[:8]));x,z,height,heading,red,green,blue,found=point;p=SceneProbe((0,0,0,0,0,1,0,0,0,0));p.point=point;a=0x02002634;p.regions[a]=bytearray((seed+i*37)&255 for i in range(0xea0));p.regions[0x020034d4]=bytearray(8)
+  for base,size in [(0x10010000,128),(0x10011000,20),(0x10012000,16)]:p.regions[base]=bytearray(size)
+  p.scalars.update({0x03006810:0x10010000,0x030053e0:12345,0x02002630:12345});p.write(0x020034d4,1);p.write(0x020034d8,1);p.write(0x02001eb0,settings,1);p.write(0x02001708,demo,1)
+  p.write(0x10010010,1,2);p.write(0x10010034,0x10011000);p.write(0x10011010,0x10012000);p.write(0x10012004,x);p.write(0x10012008,z);p.write(0x1001200c,heading,2)
+  state=seed or 0x4652414e;state=(state<<1)&MASK
+  if state&0x80000000:state^=0x1d872b41
+  state=((state&0x7fffffff)^0x06000000)&0x7fffffff;p.factor=20+state%41
+  p.reg[13]=0x10000400;p.reg[14]=0x10020001;p.run(entry=0x08014a58,stop=0x10020000)
+  assert bytes(p.regions[a])==bytes.fromhex(parts[8]),case;assert [p.scalars[0x02002630],signed(p.scalars[0x030053e0]),state]==list(map(int,parts[9:12])),case;
+  offsets=[(0,4,1),(4,4,1),(8,4,1),(0x1c,4,1),(0x20,4,1),(0x544,4,1),(0x36c,4,1),(0x374,1,0),(0x375,1,0),(0x376,1,0),(0xe60,2,0),(0x754,4,1),(0x758,4,1),(0x730,2,1),(0x732,2,1),(0x378,4,0),(0x37c,4,0),(0x714,4,0),(0x72c,4,0),(0x720,4,1),(0xe84,4,1)]
+  values=[]
+  for off,n,is_signed in offsets:
+   v=p.read(a+off,n)
+   if is_signed and v&(1<<(n*8-1)):v-=1<<(n*8)
+   values.append(v)
+  assert values==list(map(int,parts[12:33])),('typed world projection',case,values,parts[12:33]);steps+=p.steps;total+=1
+  # This independent source-offset list checks canonical driver fields.
+  assert parts[33]=='D',parts
+  driver_offsets=[(0x4ac,1,0),(0x4b4,4,1),(0x4dc,1,1),(0x4dd,1,1),(0x4de,2,1),(0x530,2,1),(0x532,2,1),(0x538,2,1),(0x544,4,1),(0x568,4,1),(0x5b8,4,1),(0x5cc,4,1),(0x75c,4,1),(0x540,4,1),(0x550,4,1),(0x5bc,4,1),(0x5d0,4,1),(0x57a,2,1),(0x57c,2,1),(0x564,4,1),(0x7c8,4,1),(0x570,4,1),(0x574,4,1),(0x358,1,0),(0x28,1,0),(0x744,4,1),(0x7b0,4,1),(0x7b8,4,1)]
+  dv=[]
+  for off,n,sgn in driver_offsets:
+   v=p.read(a+off,n)
+   if sgn and v&(1<<(n*8-1)):v-=1<<(n*8)
+   dv.append(v)
+  dv.extend([p.scalars[0x02002630]]*3);assert dv==list(map(int,parts[34:])),('driver fields',case,dv,parts[34:])
+ points.append({'city':city+1,'native_ground_spawn':point})
+report={'status':'PASS','cases':total,'actual_thumb_instructions':steps,'points':points,'scope':'Native real city CTW1 ground and CTR1 marker/template binding feeds whole14A58 comparison, all3744bytes/reset/sprite/RNG owners. Original string/ground/RNG/division remain explicit contracts; 21 canonical world and31 driver/context fields compared directly to source; no original ground-helper execution/fullscene or live typed-driver claim.','rom_sha256':hashlib.sha256(r).hexdigest()}
+(root/'reports/vehicle-start-scene-rom-comparison.json').write_text(json.dumps(report,indent=2)+'\n');print(report)

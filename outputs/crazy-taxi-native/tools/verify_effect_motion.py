@@ -1,0 +1,11 @@
+import pathlib,json,re,hashlib,subprocess
+r=pathlib.Path('outputs/crazy-taxi-native')
+p=subprocess.run([str(r/'bin/effect-generation-interpolation-probe.exe')],capture_output=True,text=True,check=True)
+assert 'emission_cases=45 observed_overwrites=153 interpolation_samples=100 reused_slot_snaps=101' in p.stdout
+logs={k:(r/f'reports/effect-motion-{k}.log').read_text() for k in ['jump','reset']}
+for k in logs:assert not (r/f'reports/effect-motion-{k}.err').read_text();assert 'LIVE HOST:' in logs[k]
+blends,snaps=map(int,re.search(r'TIMESTAMPED EFFECT MOTION: blends(\d+) snaps(\d+)',logs['jump']).groups());count=int(re.search(r'TIMESTAMPED CACHED EFFECT REQUESTS: (\d+)',logs['jump'])[1]);assert blends>0 and snaps>0 and count>=blends+snaps
+assert 'PASS RESPAWN CLOCK:' in logs['reset'] and 'EFFECT GPU TRANSFORM:' in logs['jump']
+files=['src/effect_emit.c','src/effect_emit.h','src/effect_presentation_slots.c','src/effect_presentation_slots.h','src/effect_presentation_interpolation.c','src/effect_presentation_interpolation.h','tests/effect_generation_interpolation_probe.c','bin/effect-generation-interpolation-probe.exe','bin/scene-viewer-effect-motion.exe']
+report={'status':'PASS_GENERATION_GUARDED_NATIVE_EFFECT_MOTION','emission_cases':45,'observed_overwrites':153,'interpolation_samples':100,'reused_slot_snaps':101,'live_effect_blends':blends,'live_discontinuity_snaps':snaps,'live_cached_effect_requests':count,'sha256':{f:hashlib.sha256((r/f).read_bytes()).hexdigest() for f in files},'scope':'Observer enabled/disabled emission fixtures produce byte-identical recovered pool state and ring positions. Presentation counter exists separately from game state; viewer observes emission calls only during native driving. Screen-space unjittered positions/scales blend only matching positive generations and visible slots; source after-sample jitter/frame/visibility/flags remain discrete. Bounded 360-frame dash run exercised blends and snaps with live state/RNG/cache immutability assertions; reset also passed. Not independent full original gameplay, GPU pixel fidelity or sustained4K60 proof.'}
+(r/'reports/effect-motion-verification.json').write_text(json.dumps(report,indent=2)+'\n');print('PASS',blends,snaps,count)

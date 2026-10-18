@@ -1,0 +1,4 @@
+#include "../src/world_render.h"
+#include <stdio.h>
+#include <string.h>
+int main(int argc,char **argv){if(argc!=4)return 2;TaxiWorldAsset worlds[2]={{0}};for(unsigned i=0;i<2;i++)if(taxi_world_asset_load(worlds+i,argv[i+1]))return 3;FILE *f=fopen(argv[3],"rb");unsigned char raw[16388];if(!f||fread(raw,1,sizeof raw,f)!=sizeof raw)return 4;fclose(f);TaxiTrig trig;taxi_trig_decode(&trig,raw+4,raw+8196);unsigned city,ref;int x,y,z,yaw,pitch;while(scanf("%u %u %d %d %d %d %d",&city,&ref,&x,&y,&z,&yaw,&pitch)==7){if(city>1||ref>=worlds[city].nv)return 5;TaxiPoint v,out;memcpy(&v,worlds[city].vertices+16*ref,12);unsigned flags;TaxiTrafficProjection projection={.near_plane=256,.far_plane=38400};if(taxi_world_render_vertex(v,(TaxiPoint){x,y,z},yaw,pitch,&trig,&projection,160,106,&out,&flags))return 6;printf("%ld %ld %ld %u\n",(long)out.x,(long)out.y,(long)out.z,flags);}for(unsigned i=0;i<2;i++)taxi_world_asset_free(worlds+i);return 0;}

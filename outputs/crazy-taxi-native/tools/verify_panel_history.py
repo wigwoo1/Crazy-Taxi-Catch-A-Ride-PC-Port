@@ -1,0 +1,6 @@
+import pathlib,json,re,hashlib
+r=pathlib.Path('outputs/crazy-taxi-native');log=(r/'reports/panel-history.log').read_text();assert not (r/'reports/panel-history.err').read_text();assert 'PASS paced native input-only boarding and original passenger voice playback;' in log
+count=int(re.search(r'TIMESTAMPED DESTINATION PANEL DRAWS: (\d+)',log)[1]);assert count>0
+poses=json.loads((r/'reports/panel-history-presentation-verification.json').read_text());assert poses['interior_blends']>20
+report={'status':'PASS_HISTORICAL_DESTINATION_PANEL_RENDER_COVERAGE','panel_draws':count,'pose_queries':poses['samples'],'interior_pose_blends':poses['interior_blends'],'binary_sha256':hashlib.sha256((r/'bin/scene-viewer-panel-history.exe').read_bytes()).hexdigest(),'scope':'Actual input-only native pickup completed with 4096 indexed panel pixels/generation copied per pose slot; panel placement/trip reads historical after-bracket state. Perdraw game/RNG/cache assertions expanded to preserve current panel pixel bytes and generation. Rendering branch exercised, not original GPU pixel fidelity; palette/fade and remaining discrete HUD owners still need audit. No sustained4K60 proof.'}
+(r/'reports/panel-history-verification.json').write_text(json.dumps(report,indent=2)+'\n');print('PASS historical panel draws',count)

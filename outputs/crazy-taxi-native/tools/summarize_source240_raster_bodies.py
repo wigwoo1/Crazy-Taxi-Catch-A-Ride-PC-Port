@@ -1,0 +1,9 @@
+from pathlib import Path
+import json
+root=Path('outputs/crazy-taxi-native');names=['source240-full-flat-polygon-verification','source240-full-affine-polygon-verification','source240-full-clipped-polygon-verification','source240-full-perspective-polygon-verification','source240-full-column-polygon-verification','source240-special-raster-work-verification'];reports=[json.loads((root/'reports'/(n+'.json')).read_text()) for n in names]
+assert all(r['status']=='PASS' for r in reports)
+reads=sum(r.get('texture_byte_reads',0) for r in reports);half=sum(r.get('framebuffer_halfword_writes',0) for r in reports);flat_half=sum(r.get('flat_halfword_writes',0) for r in reports);flat_word=sum(r.get('flat_word_writes',0) for r in reports)
+c=json.loads((root/'reports/source240-geometry-work-capture-verification.json').read_text())
+assert (reads,half,flat_half,flat_word)==(c['texture_byte_reads'],c['textured_halfword_writes'],c['flat_halfword_writes'],c['flat_word_writes'])==(8660,8006,73,2121)
+report={'status':'PASS','source240_scened_packets':37,'framebuffer_bytes_compared':sum(r['framebuffer_bytes'] for r in reports),'texture_byte_reads':reads,'textured_halfword_writes':half,'flat_halfword_writes':flat_half,'flat_word_writes':flat_word,'original_arm_instructions':sum(r['original_arm_instructions'] for r in reports),'reports':names,'scope':'All37scenery packets at one actualcamera: individual original callback bodies including edges/division, or full billboard callbacks, equal nativefresh173fb. Aggregatecounts equal actualsourcewidthnativecensus. Partialsource nearclipping separatelyqualified. Not orderedcomposite/fullsceneactors/background/palette/retainedcache/bounds-cellvisit/trajectory/cycles/cadenceproof.'}
+(root/'reports/source240-all-raster-body-summary.json').write_text(json.dumps(report,indent=2)+'\n');print(report)

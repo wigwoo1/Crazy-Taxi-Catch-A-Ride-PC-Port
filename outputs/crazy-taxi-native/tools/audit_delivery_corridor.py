@@ -1,0 +1,8 @@
+import json,csv,re,hashlib,sys
+from pathlib import Path
+from collections import Counter
+r=Path('outputs/crazy-taxi-native');stem=sys.argv[1];log=(r/f'reports/{stem}.log').read_text();assert 'LIVE DELIVERY TERMINAL:' in log,'Capture is not terminal; do not audit a partial run'
+rows=[{k:int(v) for k,v in row.items()} for row in csv.DictReader((r/f'reports/{stem}.movement.csv').open())]
+corridor=[dict(waypoint=int(a),lateral=float(b),dx=int(c),dz=int(d),endpoint_distance_squared=int(e)) for a,b,c,d,e in re.findall(r'LIVE DELIVERY CORRIDOR: waypoint(\d+) lateral(-?[\d.]+) target_delta(-?\d+),(-?\d+) endpoint_distance_squared(\d+)',log)]
+report=dict(movement_records=len(rows),collisions=sum(v['collided'] for v in rows),collisions_by_waypoint=dict(Counter(v['waypoint'] for v in rows if v['collided'])),waypoint16_records=sum(v['waypoint']==16 for v in rows),waypoint16_collisions=sum(v['waypoint']==16 and v['collided'] for v in rows),maximum_logged_lateral=max(abs(v['lateral']) for v in corridor),waypoint16_maximum_logged_lateral=max((abs(v['lateral']) for v in corridor if v['waypoint']==16),default=0),corridor=corridor,scope='Closed native input-only delivery capture. Corridor telemetry is periodic, not per movement call; maxlateral is sampled only. Collision flags are actual observer results. No crossrun timing matching or claim of original physics timing equivalence.',hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),r/f'reports/{stem}.log',r/f'reports/{stem}.movement.csv']})
+(r/f'reports/{stem}-corridor-audit.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({k:v for k,v in report.items() if k not in ('corridor','hashes')},indent=2))

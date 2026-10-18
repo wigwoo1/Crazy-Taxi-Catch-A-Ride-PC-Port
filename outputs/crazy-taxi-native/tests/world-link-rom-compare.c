@@ -1,0 +1,4 @@
+#include "../src/traffic_presentation.h"
+#include "../src/render_queue.h"
+#include <stdio.h>
+int main(int argc,char **argv){if(argc!=2)return 2;FILE *f=fopen(argv[1],"rb");unsigned char raw[16388];if(!f||fread(raw,1,sizeof raw,f)!=sizeof raw)return 3;fclose(f);TaxiTrig trig;taxi_trig_decode(&trig,raw+4,raw+8196);int depth,far;unsigned prior;while(scanf("%d %d %u",&depth,&far,&prior)==3){unsigned bucket;if(taxi_traffic_depth_bucket(depth,0,far,&trig,&bucket))return 4;TaxiRenderPacket storage[2];TaxiRenderQueue q;taxi_render_queue_init(&q,storage,2);if(prior&&taxi_render_queue_push(&q,bucket,7,17))return 5;if(taxi_render_queue_push(&q,bucket,1,23))return 6;size_t h=q.heads[bucket];printf("%u %u %u %u %u\n",bucket,(unsigned)(storage[h].next==SIZE_MAX?0:storage[h].next+1),(unsigned)(h+1),(unsigned)q.count,(unsigned)(storage[h].payload));}return 0;}

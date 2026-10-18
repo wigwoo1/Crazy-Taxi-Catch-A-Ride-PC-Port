@@ -1,0 +1,5 @@
+#include "../src/traction.h"
+#include <stdio.h>
+static TaxiTrig trig;static TaxiAngleTable table;
+int main(void){unsigned char b[34504];FILE*f=fopen("outputs/crazy-taxi-native/assets/driving.ctr","rb");if(!f||fread(b,1,sizeof b,f)!=sizeof b)return 1;fclose(f);taxi_trig_decode(&trig,b+4,b+8196);taxi_angle_table_decode(&table,b+32774);int forcex,forcez,capx,capz,speed,phase,phaseb,flags,gate,latch;
+while(scanf("%d%d%d%d%d%d%d%d%d%d",&forcex,&forcez,&capx,&capz,&speed,&phase,&phaseb,&flags,&gate,&latch)==10){TaxiTraction v={.force_53c=forcex,.force_540=forcez,.capacity_570=capx,.capacity_574=capz,.speed_544=speed,.state_564=99,.phase_e6a=(signed char)phase,.phase_e6b=(signed char)phaseb,.flags_28=(unsigned char)flags};TaxiTractionContext c={.settings=128,.flag_1696=(unsigned char)gate,.flag_262c=(unsigned char)latch};TaxiOrientationEffects e;int rc=taxi_traction_step(&v,&c,&trig,&table,&e);printf("%d %d %d %u %u %d %u %u %u\n",rc,v.state_564,v.speed_544,c.flag_25d4,c.flag_262c,e.score_requested,e.score_a,e.score_b,e.score_c);}return 0;}

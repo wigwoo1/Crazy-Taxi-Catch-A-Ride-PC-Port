@@ -1,0 +1,3 @@
+#include "../src/input_snapshot.h"
+#include <stdio.h>
+int main(void){char hex[137];while(scanf("%136s",hex)==1){uint8_t bytes[68];for(unsigned i=0;i<68;i++){unsigned b;if(sscanf(hex+i*2,"%2x",&b)!=1)return 1;bytes[i]=(uint8_t)b;}TaxiInput s;if(taxi_input_snapshot_read(&s,bytes,68))return 2;printf("%u %u %u",s.auxiliary_mask,s.raw_keys,s.pressed_mask);for(unsigned i=0;i<10;i++)printf(" %u",s.held[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.previous[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.repeat[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.pressed[i]);for(unsigned i=0;i<10;i++)printf(" %u",s.countdown[i]);puts("");}return 0;}

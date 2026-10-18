@@ -1,0 +1,6 @@
+exec(open('outputs/crazy-taxi-native/tools/probe_effect_state.py').read().split('for off in range(0,0x34000,2):')[0])
+arm=Cs(CS_ARCH_ARM,CS_MODE_ARM);lines=[]
+for start,end in [(0x718,0x738),(0x954,0xa1c)]:
+ for i in arm.disasm(r[start:end],0x8000000+start):lines.append(f'{i.address:08x}: {i.mnemonic} {i.op_str}')
+pathlib.Path('outputs/crazy-taxi-native/reports/body-point-globals-source.txt').write_text('\n'.join(lines))
+print('\n'.join(lines))

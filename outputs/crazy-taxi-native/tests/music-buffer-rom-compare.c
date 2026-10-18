@@ -1,0 +1,7 @@
+#include "../src/music_buffer.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+static void word(uint8_t *p,unsigned v){for(unsigned j=0;j<4;j++)p[j]=(uint8_t)(v>>(8*j));}
+int main(void){uint8_t *b=malloc(181241);FILE *f=fopen("outputs/crazy-taxi-native/assets/music/original-module.bin","rb");if(!b||!f||fread(b,1,181241,f)!=181241)return 1;fclose(f);TaxiMusicAsset a;if(taxi_music_asset_index(&a,b,181241))return 1;unsigned sample,count,mask;
+while(scanf("%u %u %u",&sample,&count,&mask)==3){TaxiMusicTracker t={0};t.state.state[2]=4;t.state.playing=(uint8_t)((mask>>1)&1);for(unsigned k=0;k<4;k++){TaxiMusicVoice *v=t.voice+k;memset(v->bytes,165,32);v->sample=b+a.sample[(sample+k)%a.samples].offset;word(v->bytes+12,0);word(v->bytes+16,128+k*64);v->bytes[20]=64;v->bytes[21]=0;v->bytes[22]=64;v->bytes[23]=0;}int16_t mixed[352];for(unsigned j=0;j<count;j++)mixed[j]=(int16_t)(j*257-30000);uint8_t effects_enabled=(mask&4)?128:0,effects_active=(mask&8)?((mask&32)?1:128):0,active=(mask&16)?255:0;if(taxi_music_buffer(&t,&a,mixed,352,count,(uint8_t)(mask&1),effects_enabled,effects_active,active,64,0,256))return 1;for(unsigned k=0;k<4;k++){TaxiMusicVoice *v=t.voice+k;for(unsigned j=0;j<28;j++)printf("%02x",v->bytes[j]);printf(" %llu ",(unsigned long long)(v->sample?(size_t)(v->sample-b):UINT32_MAX));}for(unsigned j=0;j<count;j++)printf("%d ",mixed[j]);putchar('\n');}free(b);return 0;}

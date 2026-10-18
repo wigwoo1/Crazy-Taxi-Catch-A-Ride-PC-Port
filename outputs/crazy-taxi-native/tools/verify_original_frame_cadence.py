@@ -1,0 +1,7 @@
+import pathlib,json,collections
+root=pathlib.Path('outputs/crazy-taxi-native');r=json.loads((root/'reports/original-core-reference/boot3300trace.actor-trace.json').read_text());checks=[]
+for a,b in zip(r,r[1:]):
+ if a['previous']!=b['previous']:
+  diff=(b['previous']-a['previous'])&0xffffffff;signed=diff if diff<0x80000000 else diff-0x100000000;expected=max(1,min(60,signed));checks.append({'tick':b['tick'],'elapsed_counter':diff,'frame_delta':b['frame_delta'],'global_delta':b['delta']});assert b['frame_delta']==expected,(a,b)
+assert len(checks)>20
+report={'status':'PASS','update_boundaries':len(checks),'counter_difference_histogram':dict(collections.Counter(x['elapsed_counter'] for x in checks)),'checks':checks,'finding':'Independent original counter3524 changes validate recovered frame_delta3B00 clamp formula at actual loop boundaries. Runtime delta53C0 can lag frame_delta until caller copies it. Observed gameplay loop uses3/4tick steps in this trace; do not replace globally with guessed constant4.','irq_evidence':'Original handler16174 increments3520 and writes BIOS interrupt flag03007FF8=1. ROM0849D52C holds0816175; actual boot4200 callback02003534=0816175.','scope':'This original no-input startup trace only; moving gameplay/other scenes cadence and all native consumers remain unverified.'};(root/'reports/original-frame-time-cadence.json').write_text(json.dumps(report,indent=2));print('PASS actual original update boundaries',len(checks),report['counter_difference_histogram'])

@@ -1,0 +1,3 @@
+#include "audio_channel.h"
+#include <stdio.h>
+int main(void){unsigned mask,rate;while(scanf("%u%u",&mask,&rate)==2){TaxiSoundAsset a={0};TaxiAudioChannel c[4];for(unsigned j=0;j<4;j++)c[j]=(TaxiAudioChannel){.stamp=123+j,.rate=456,.phase=789,.step=1011,.flags4=1,.flags5=2,.volume=64,.last=7,.sound=(mask&(1u<<j))?&a:0};taxi_audio_channels_stop_rate(c,(uint16_t)rate);for(unsigned j=0;j<4;j++)printf("%u %u %u %u %u %u %u %u %u ",c[j].sound!=0,c[j].stamp,(unsigned)c[j].rate,c[j].phase,c[j].step,(unsigned)c[j].flags4,(unsigned)c[j].flags5,(unsigned)c[j].volume,(unsigned)c[j].last);puts("");}return 0;}

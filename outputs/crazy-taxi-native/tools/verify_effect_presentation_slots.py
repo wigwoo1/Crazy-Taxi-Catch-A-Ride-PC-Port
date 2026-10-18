@@ -1,0 +1,7 @@
+import pathlib,json,subprocess,hashlib
+r=pathlib.Path('outputs/crazy-taxi-native');p=r/'reports/live-effect-source-inputs.json';d=json.loads(p.read_text());assert len(d['records'])==9 and all(len(x)==72 for x in d['records'])
+values=d['camera']+[d['phase'],len(d['requests'])]+[x for record in d['records'] for x in record]+[x for request in d['requests'] for x in request]
+cp=subprocess.run([str(r/'bin/effect-presentation-slots-probe.exe')],input=' '.join(map(str,values))+'\n',text=True,capture_output=True,check=True);rows=cp.stdout.splitlines();assert rows[-1]=='END';mapped=[list(map(int,x.split())) for x in rows[:-1]]
+assert [x[1:] for x in mapped]==d['requests']
+assert [x[0] for x in mapped]==[n for n,record in enumerate(d['records']) if record[0x34]]
+report={'status':'PASS_IMMUTABLE_CACHED_EFFECT_SLOT_ASSOCIATION','captured_records':9,'matched_cached_requests':len(mapped),'source_capture_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'binary_sha256':hashlib.sha256((r/'bin/effect-presentation-slots-probe.exe').read_bytes()).hexdigest(),'scope':'Existing live effect capture: retained sprite outputs associated by original index-order visible slots and byte-exact copied, no update/RNG callback; native record-preservation assertion passed. This capture has type5 effects, so randomized smoke association and live viewer integration remain to verify.'};(r/'reports/effect-presentation-slots-verification.json').write_text(json.dumps(report,indent=2)+'\n');print(report)

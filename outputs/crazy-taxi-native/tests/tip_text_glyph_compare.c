@@ -1,0 +1,4 @@
+#include "../src/text_layout.h"
+#include <stdio.h>
+#include <string.h>
+int main(void){uint16_t m[224*9];uint8_t p[224*224],h[8];FILE *f=fopen("outputs/crazy-taxi-native/assets/hud/font-metrics.ctf","rb");if(!f||fread(h,1,8,f)!=8||fread(m,2,224*9,f)!=224*9||fread(p,1,sizeof p,f)!=sizeof p)return 1;fclose(f);char text[64];int x,y;while(scanf("%d %d %63s",&x,&y,text)==3){uint32_t d=taxi_text_measure(m,224,text,p,1);int32_t qx=x*256-(int32_t)(d>>16)*128,qy=y*256-(int32_t)(d&65535)*128;printf("%u",(unsigned)strlen(text));for(unsigned i=0;text[i];i++){unsigned g=(unsigned char)text[i]-32,n=text[i+1]?(unsigned char)text[i+1]-32:0;if(g>=224)return 2;printf(" %u %d %d",g,taxi_text_glyph_coordinate(qx,(int16_t)m[g*9+2]),taxi_text_glyph_coordinate(qy,(int16_t)m[g*9+3]));qx+=(int32_t)m[g*9]*8*256-taxi_text_correction_q8(m,224,g,n,p,1,256);}puts("");}return 0;}

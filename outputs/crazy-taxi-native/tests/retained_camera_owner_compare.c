@@ -1,0 +1,4 @@
+#include "../src/camera_angle.h"
+#include <stdio.h>
+int main(void){unsigned char b[16388];FILE *f=fopen("outputs/crazy-taxi-native/assets/driving.ctr","rb");if(!f||fread(b,1,sizeof b,f)!=sizeof b)return 2;fclose(f);TaxiTrig t;taxi_trig_decode(&t,b+4,b+8196);int a[21];while(1){for(unsigned i=0;i<21;i++)if(scanf("%d",a+i)!=1)return i?3:0;
+ int ch=taxi_camera_yaw_step(a[0],a[1],a[9],a[20],&t),cp=taxi_camera_pitch_step(a[2],(short)a[3],a[9],&t),off=taxi_camera_yaw_offset_step(a[4],a[5],a[9]);TaxiCameraOffsets s={.zoom_2628=a[6]};taxi_camera_mode2_offsets(&s,a[7],(unsigned char)a[8],a[9],(unsigned char)a[10],a[11],a[12]);uint8_t flags=(uint8_t)a[19];TaxiCameraView v=taxi_camera_mode2_view((TaxiPoint){a[14],a[15],a[16]},cp,ch,off,&s,a[13],a[18],(uint16_t)a[17],&flags,&t);printf("%d %d %d %d %d %d %d %d %d %d %d %d %u\n",ch,cp,off,s.zoom_2628,s.height_76c,s.distance_770,v.position.x,v.position.y,v.position.z,v.pitch,v.yaw,v.roll,(unsigned)flags);}}

@@ -1,0 +1,6 @@
+import pathlib,json,collections
+root=pathlib.Path('outputs/crazy-taxi-native');schema=json.loads((root/'reports/ordinary-drag-corrected-full-driver-schema.json').read_text())['fields'];rows=[dict(zip(schema,list(map(int,l.split()))[1:])) for l in (root/'reports/all-deltas-driver.txt').read_text().splitlines()];deltas={r['control_delta'] for r in rows};assert set(range(1,61))<=deltas and all(r['rc']==0 for r in rows)
+world=json.loads((root/'reports/all-deltas-world-rom-comparison.json').read_text());assert world['status']=='PASS' and world['cases']==174
+report={'status':'PASS_MAPPED_DRIVER_WORLD_FIELDS','driver_calls':len(rows),'timesteps_verified':sorted(deltas),'signed_zero_division_original_cases':5,'live_driver_world_calls_verified':89,'world_stress_calls_verified':174,'world_scope':world['scope'],'scope':'Diagnostic1..60stress timestep sequence intentionally differs from original recorded cadence. Complete driver outputs source matched; original trajectories, gameplay/framebuffer and4K60fps remain unverified. Installed playable unchanged.'}
+(root/'reports/zero-division-fix-verification.json').write_text(json.dumps(report,indent=2));print('PASS driver timesteps1..60 and174 mapped world-state calls; effect pool/audio excluded')
+

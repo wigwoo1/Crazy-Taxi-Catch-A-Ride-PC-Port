@@ -1,0 +1,10 @@
+import json,struct,subprocess,hashlib,sys
+from pathlib import Path
+r=Path('outputs/crazy-taxi-native');label=sys.argv[1];trace=r/f'reports/original-core-reference/{label}.packed-driving-trace.json';records=json.loads(trace.read_text())['records'];pairs=[(a,b) for a,b in zip(records,records[1:]) if a['previous']!=b['previous']]
+lines=[];expected=[]
+for a,b in pairs:
+ raw=struct.unpack_from('<H',bytes.fromhex(b['input_history']),2)[0];delta=struct.unpack_from('<i',bytes.fromhex(b['time_commands']))[0];lines.append(f"{raw} {a['frame_delta']} {delta} {b['frame_delta']}");actor=bytes.fromhex(b['actor']);expected.append([0]+list(struct.unpack_from('<iii',actor))+[struct.unpack_from('<i',actor,0x1c)[0],struct.unpack_from('<i',actor,0x544)[0]])
+binary=r/'bin/original-continuous-drive-probe.exe';p=subprocess.run([str(binary)],input='\n'.join(lines)+'\n',capture_output=True,text=True,check=True);native=[list(map(int,l.split())) for l in p.stdout.splitlines()];assert len(native)==len(pairs) and all(v[0]==0 for v in native)
+mismatches=[dict(update=i,source_tick=b['tick'],original=e,native=n) for i,((a,b),e,n) in enumerate(zip(pairs,expected,native)) if e!=n]
+report=dict(status='PASS_LONGER_CONTINUOUS_DRIVING' if not mismatches else 'LONGER_CONTINUOUS_DRIVING_DIVERGENCE',source_vblanks=len(records)-1,updates=len(pairs),mismatches=len(mismatches),matched_prefix_updates=mismatches[0]['update'] if mismatches else len(pairs),first_mismatch=mismatches[0] if mismatches else None,last_original=expected[-1],last_native=native[-1],scope='Longer originalROM VBlank capture vs continuous recovered native input/driver/world from same boot4200 baseline. Originalobserved input and physics delta ownership provided. ComparesXYZ/heading/speed only, not whole actor/shared/RNG/traffic/passenger/audio. No hosttiming or60Hzretiming equivalence claim.',hashes={str(q):hashlib.sha256(q.read_bytes()).hexdigest() for q in [Path(__file__),trace,binary,r/'reports/original-core-reference/boot4200.ewram']})
+(r/f'reports/{label}-native-comparison.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))

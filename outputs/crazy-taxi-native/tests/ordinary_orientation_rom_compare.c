@@ -1,0 +1,5 @@
+#include "../src/orientation.h"
+#include <stdio.h>
+static TaxiTrig trig;
+int main(void){unsigned char b[16388];FILE*f=fopen("outputs/crazy-taxi-native/assets/driving.ctr","rb");if(!f||fread(b,1,sizeof b,f)!=sizeof b)return 1;fclose(f);taxi_trig_decode(&trig,b+4,b+8196);int pitch,heading,roll,heading20,drift,force,timer,state,speed,flags,delta,actor_flags;
+while(scanf("%d%d%d%d%d%d%d%d%d%d%d%d",&pitch,&heading,&roll,&heading20,&drift,&force,&timer,&state,&speed,&flags,&delta,&actor_flags)==12){TaxiOrientation v={.position={100,200,300},.angle_18=(unsigned short)pitch,.angle_1a=(unsigned short)roll,.heading_1c=heading,.heading_20=heading20,.drift_69c=drift,.force_540=force,.timer_2a=(short)timer,.state_564=state,.speed_544=speed,.flags_358=(unsigned char)actor_flags,.flags_28=(unsigned char)flags,.phase_e6a=0};TaxiOrientationContext c={.delta=delta,.settings=0,.submode=0};TaxiOrientationEffects e;taxi_orientation_step(&v,&c,&trig,&e);printf("%d %d %d %d %d %d %d %d\n",v.heading_1c,v.heading_20,v.drift_69c,v.timer_2a,v.speed_544,v.position.x,v.position.z,e.score_requested);}return 0;}

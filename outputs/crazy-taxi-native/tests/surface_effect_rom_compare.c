@@ -1,0 +1,4 @@
+#include "../src/effect_emit.h"
+#include <stdio.h>
+#include <string.h>
+int main(void){unsigned type,flags,mat,alt,ring,pattern;int speed,timer,clock;while(scanf("%u%u%u%u%u%u%d%d%d",&type,&flags,&mat,&alt,&ring,&pattern,&speed,&timer,&clock)==9){TaxiEffectPool p;memset(&p,0x5a,sizeof p);for(unsigned g=0;g<2;g++)for(unsigned i=0;i<6;i++)p.slots[g][i]=(pattern&(1u<<i))?(int)i:-1;TaxiSurfaceEffect s={.actor_flags=flags,.material_flags=mat,.alternate=alt,.speed=speed,.timer=timer,.clock=clock,.attachment_tags={2,3,4},.velocity_basis={{-256,256,-3072},{256,256,-3072},{0,256,-2048}}};int rc=taxi_effect_emit_surface(&p,&ring,type,&s);printf("%d %u %d",rc,ring,s.timer);for(unsigned i=0;i<6;i++)printf(" %d",p.slots[type-2][i]);for(unsigned i=0;i<sizeof p.records;i++)printf(" %u",((unsigned char*)p.records)[i]);puts("");}return 0;}

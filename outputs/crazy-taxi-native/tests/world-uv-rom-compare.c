@@ -1,0 +1,4 @@
+#include "../src/world_material.h"
+#include <stdio.h>
+#include <string.h>
+int main(void){unsigned count,word,lw,lh,seed;int phase;while(scanf("%u %u %u %u %u %d",&count,&word,&lw,&lh,&seed,&phase)==6){unsigned char poly[24]={0},m[28]={0};for(unsigned i=16;i<24;i++)poly[i]=(unsigned char)(seed+i*37);for(unsigned i=0;i<4;i++)m[24+i]=(unsigned char)(word>>(i*8));TaxiWorldMaterialPolygon p;memset(&p,0xa5,sizeof p);p.count=count;TaxiWorldMaterialPolygon before=p;int rc=taxi_world_material_uv(&p,poly,m,phase,lw,lh);if(p.count!=before.count||p.texture!=before.texture)return 2;for(unsigned i=0;i<4;i++){if(p.vertices[i].x!=before.vertices[i].x||p.vertices[i].y!=before.vertices[i].y||p.vertices[i].z!=before.vertices[i].z||p.vertices[i].attribute!=before.vertices[i].attribute)return 3;}printf("%d ",rc);for(unsigned i=0;i<4;i++)printf("%ld %ld ",(long)p.vertices[i].u,(long)p.vertices[i].v);puts("");}return 0;}
