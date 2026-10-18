@@ -4,11 +4,11 @@ Experimental native Windows port in progress. Not a completed faithful port.
 
 ## Source
 
-Current native code is in `outputs/crazy-taxi-native/src`; tests and research/extraction tools are included alongside it. The viewer build uses379 C modules. Research tools include offline original-instruction diagnostics; those are not the native game runtime.
+Current native code is in `outputs/crazy-taxi-native/src`; tests and research/extraction tools are also available in the complete source archive below and are materialized alongside the native source by the publication workflow. The viewer build uses379 C modules. Research tools include offline original-instruction diagnostics; those are not the native game runtime.
 
 ## Builds
 
-Download the Windows x64 asset-free prototype from Releases. It requires the original game resources extracted locally from your own USA ROM. ROMs, extracted assets, saves, and toolchains are intentionally excluded. A clean one-click extraction/install flow has not yet been verified. See the release instructions before downloading.
+Download the Windows x64 asset-free prototype from [downloads](downloads/README.md) or the repository’s prereleases. It requires the original game resources extracted locally from your own USA ROM. ROMs, extracted assets, saves, and toolchains are intentionally excluded. A clean one-click extraction/install flow has not yet been verified. See the release instructions before downloading.
 
 ## Build from source
 
@@ -27,3 +27,10 @@ Keep original raw text and character face artwork unchanged. Only approved non-t
 Audio: identify original tracks, accept user-supplied MP3 replacements, add Original/Remastered music with original fallback, and a Sound Test for music and sound effects.
 
 Daily publication checks run in the development environment. No empty commits or unverified release claims are intended. No game assets or license to the original game are supplied.
+
+## Downloads
+
+- [Windows x64 asset-free prototype](downloads/README.md)
+- [Complete source, tests and research tools](https://github.com/wigwoo1/Crazy-Taxi-Catch-A-Ride-PC-Port/raw/refs/heads/main/downloads/Crazy-Taxi-Native-Complete-Source-2026-10-18.tar.xz)
+
+The complete source archive contains 3,673 reviewed text files. Open `.tar.xz` with a compatible archive manager. Machine-specific paths were made relative in the public copy; the working project is preserved. Original and published hashes are included. The archive includes historical diagnostic probes and does not imply every included experiment passes or belongs to the game runtime.

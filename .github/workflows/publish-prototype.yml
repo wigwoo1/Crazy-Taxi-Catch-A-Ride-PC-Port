@@ -1,0 +1,56 @@
+name: Publish verified prototype
+on:
+  push:
+    branches: [main]
+    paths: ['downloads/**', '.github/workflows/publish-prototype.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: prototype-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Verify and publish supporting source
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd downloads && sha256sum -c SHA256SUMS.txt)
+          python3 - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import tarfile, json, hashlib
+          archives = list(Path('downloads').glob('*.tar.xz'))
+          assert len(archives) == 1
+          with tarfile.open(archives[0]) as t:
+              for m in t:
+                  path = PurePosixPath(m.name)
+                  assert m.isfile() and not path.is_absolute() and '..' not in path.parts
+                  if m.name.startswith(('outputs/crazy-taxi-native/tests/', 'outputs/crazy-taxi-native/tools/')) or m.name in ('SOURCE-MANIFEST.json', 'PUBLICATION-NOTES.txt'):
+                      p = Path(m.name); p.parent.mkdir(parents=True, exist_ok=True); p.write_bytes(t.extractfile(m).read())
+          for item in json.loads(Path('SOURCE-MANIFEST.json').read_text()):
+              assert hashlib.sha256(Path(item['path']).read_bytes()).hexdigest() == item['published_sha256'], item['path']
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add outputs/crazy-taxi-native/tests outputs/crazy-taxi-native/tools SOURCE-MANIFEST.json PUBLICATION-NOTES.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish reviewed supporting tests and extraction tools'
+            git push origin HEAD:main
+          fi
+      - name: Publish asset-free prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="prototype-${GITHUB_SHA:0:12}"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --draft --target "$(git rev-parse HEAD)" --title "Native Windows prototype — asset-free" --notes-file downloads/README.md
+          fi
+          gh release upload "$tag" downloads/*.zip downloads/*.tar.xz downloads/SHA256SUMS.txt --clobber
+          gh release edit "$tag" --draft=false --prerelease

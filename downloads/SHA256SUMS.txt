@@ -1,1 +1,2 @@
 e54187b7a5181d16fd40e0b64838a3f621a6cbc2670b3ddd79c3dcb99cf4abfd  Crazy-Taxi-Native-Windows-x64-2026-10-18-Asset-Free.zip
+8fbef8fc4e5c73eef05bd7713468e9e63574fa3b9c9f2e754aa2984a16e0536f  Crazy-Taxi-Native-Complete-Source-2026-10-18.tar.xz
