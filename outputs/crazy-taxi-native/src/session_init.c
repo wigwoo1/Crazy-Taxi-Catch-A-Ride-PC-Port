@@ -1,0 +1,76 @@
+#include "session_init.h"
+#include <string.h>
+static void store(uint8_t *p,uint32_t value,unsigned size){for(unsigned i=0;i<size;i++)p[i]=(uint8_t)(value>>(i*8));}
+static unsigned word(const uint8_t *p){return p[0]|(unsigned)p[1]<<8|(unsigned)p[2]<<16|(unsigned)p[3]<<24;}
+int taxi_session_init(TaxiSessionInit *s,uint16_t width){
+ if(!s)return -1;
+ s->outer_1ea8=0;
+ store(s->effect_5f20+0,0x0u,1);
+ store(s->session_165e+52,0x0u,1);
+ store(s->session_165e+118,0x63u,1);
+ store(s->session_165e+54,0x0u,1);
+ store(s->session_165e+58,0x0u,4);
+ store(s->session_165e+62,0x0u,4);
+ store(s->session_165e+66,0x0u,4);
+ store(s->session_165e+70,0x0u,4);
+ store(s->session_165e+130,0x0u,4);
+ store(s->session_165e+134,0x0u,4);
+ store(s->session_165e+138,0x0u,4);
+ store(s->session_165e+142,0x0u,4);
+ store(s->session_165e+53,0x8u,1);
+ store(s->session_165e+56,0x1u,1);
+ store(s->session_165e+86,0xffffu,2);
+ store(s->session_165e+88,0x0u,2);
+ store(s->session_165e+92,0x40u,2);
+ store(s->session_165e+57,0x0u,1);
+ store(s->session_165e+94,0x0u,2);
+ store(s->session_165e+96,0x0u,2);
+ store(s->session_165e+98,0x40u,2);
+ store(s->session_165e+78,0x0u,4);
+ store(s->sound_2618+20,0x0u,1);
+ store(s->shared_1534+7,0x0u,1);
+ store(s->session_165e+42,0x0u,4);
+ store(s->session_165e+46,0x0u,4);
+ store(s->scroll_7530+0,0x0u,4);
+ store(s->session_165e+166,0x0u,4);
+ store(s->session_165e+162,0x0u,4);
+ store(s->shared_1534+0,0x0u,1);
+ store(s->shared_1534+1,0xffu,1);
+ store(s->shared_1534+2,0x0u,1);
+ store(s->session_165e+0,0x0u,1);
+ store(s->scroll_7530+12,0xffffffffu,4);
+ s->reset_430c=0;
+ store(s->effect_5f20+8,0x0u,1);
+ store(s->effect_5f20+9,0x0u,1);
+ store(s->effect_5f20+10,0x1u,1);
+ store(s->session_165e+38,0x0u,1);
+ store(s->scroll_7530+4,0x0u,4);
+ store(s->scroll_7530+8,0x0u,4);
+ store(s->projection_5310+0,0x100u,2);
+ store(s->projection_5310+2,0x100u,2);
+ store(s->projection_5310+4,0x0u,2);
+ store(s->session_165e+114,0x0u,1);
+ store(s->session_165e+115,0x0u,1);
+ store(s->sound_2618+8,0x0u,1);
+ store(s->effect_5f20+4,0x0u,1);
+ store(s->sound_2618+0,0x0u,4);
+ store(s->sound_2618+4,0x0u,4);
+ store(s->session_165e+18,0x0u,2);
+ store(s->sound_2618+12,0x0u,4);
+ store(s->sound_2618+16,0x0u,4);
+ store(s->session_165e+90,width,2);
+ for(unsigned i=0;i<12;i++)s->effect_slots[i]=-1;
+ unsigned mode=s->settings[0]&0xe0;
+ unsigned scale=s->session_165e[170]?4096u:mode==0x80?1024u:12288u;
+ store(s->session_165e+22,scale,4);
+ store(s->session_165e+26,4096,4);
+ store(s->session_165e+30,scale,4);
+ s->counter_67d0=(mode==0x80&&!s->shared_1534[3])?300:200;
+ unsigned clock=word(s->session_165e+74);
+ if(mode==0)clock=s->settings[5]*60u;
+ else if(mode==0x20)clock=180u*60;
+ else if(mode==0x40)clock=300u*60;
+ else if(mode==0x60)clock=600u*60;
+ store(s->session_165e+74,clock,4);
+ memcpy(s->snapshot,s->settings,512);return 0;
+}

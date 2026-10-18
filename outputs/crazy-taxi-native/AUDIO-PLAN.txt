@@ -1,0 +1,5 @@
+AUDIO PLAN — user requested 2026-10-18
+When audio work begins, identify every original music track and its in-game usage. The user will supply replacement MP3s after identification.
+Add a Settings choice: Music Original / Remastered. Preserve original music and fall back to it for tracks without replacements.
+Add Sound Test: select and play/stop individual music tracks and sound effects; audition Original and Remastered music.
+These are planned features, not implemented or verified. Do not replace raw text or upscale character face icons.

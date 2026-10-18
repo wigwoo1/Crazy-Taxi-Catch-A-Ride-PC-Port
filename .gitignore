@@ -1,0 +1,14 @@
+**/assets/
+**/bin/
+**/work/
+**/reports/
+user-data/
+releases/
+*.gba
+*.zip
+*.exe
+*.dll
+*.log
+*.sav
+.env*
+__pycache__/
